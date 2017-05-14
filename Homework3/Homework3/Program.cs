@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using Homework3.NaiveBayes;
 using Homework3.Parsing;
 
 namespace Homework3
@@ -34,8 +36,44 @@ namespace Homework3
 			var startTime = DateTime.Now;
 			Console.WriteLine(startTime);
 
-			var trainingEmails = CsvParserUtils.ParseEmailExamples(TrainingDataPath);
-			var testEmails = CsvParserUtils.ParseEmailExamples(TestDataPath);
+			Console.WriteLine("Parsing...");
+			List<EmailExample> testEmails;
+			Dictionary<string, WordCount> trainingEmails = CsvParserUtils.ParseEmailExamples(TrainingDataPath, out testEmails);
+			CsvParserUtils.ParseEmailExamples(TestDataPath, out testEmails);
+
+			Console.WriteLine("Making predictions...");
+			uint hits = 0, misses = 0;
+			uint falsePositives = 0, falseNegatives = 0;
+			foreach (var emailExample in testEmails)
+			{
+				double probabilityOfSpam = NaiveBayesCalculator.ObtainProbabilityOfSpam(emailExample.WordsInEmail, trainingEmails);
+				bool isSpamPrediction = probabilityOfSpam > 0.5;
+				if (isSpamPrediction && emailExample.IsSpam)
+				{
+					hits++;
+				}
+				else if (!isSpamPrediction && !emailExample.IsSpam)
+				{
+					hits++;
+				}
+				else if (isSpamPrediction && !emailExample.IsSpam)
+				{
+					misses++;
+					falsePositives++;
+				}
+				else if (!isSpamPrediction && emailExample.IsSpam)
+				{
+					misses++;
+					falseNegatives++;
+				}
+				else
+				{
+					throw new InvalidOperationException();
+				}
+			}
+
+			Console.WriteLine("Score: {0}. Hits: {1}, Misses: {2}", 100.0 * hits / (misses + hits), hits, misses);
+			Console.WriteLine("FalsePositives: {0}. FalseNegatives: {1}", falsePositives, falseNegatives);
 
 			var endTime = DateTime.Now;
 			Console.WriteLine(endTime);

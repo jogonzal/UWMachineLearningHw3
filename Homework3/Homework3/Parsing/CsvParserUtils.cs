@@ -6,10 +6,11 @@ namespace Homework3.Parsing
 {
 	public static class CsvParserUtils
 	{
-		public static List<EmailExample> ParseEmailExamples(string path)
+		public static Dictionary<string, WordCount> ParseEmailExamples(string path, out List<EmailExample> emailExamples)
 		{
 			var lines = File.ReadAllLines(path);
-			List<EmailExample> emailExamples = new List<EmailExample>(lines.Length);
+			var wordCounts = new Dictionary<string, WordCount>();
+			emailExamples = new List<EmailExample>(lines.Length);
 			foreach (var line in lines)
 			{
 				string[] delimitedBySpace = line.Split(new [] { ' ' });
@@ -29,12 +30,20 @@ namespace Homework3.Parsing
 					uint count = uint.Parse(delimitedBySpace[i + 1]);
 
 					emailExample.WordsInEmail.Add(word, count);
+
+					WordCount wordCount;
+					if (!wordCounts.TryGetValue(word, out wordCount))
+					{
+						wordCount = new WordCount();
+						wordCounts.Add(word, wordCount);
+					}
+					wordCount.Add(isSpam, count);
 				}
 
 				emailExamples.Add(emailExample);
 			}
 
-			return emailExamples;
+			return wordCounts;
 		}
 	}
 }

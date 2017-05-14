@@ -47,8 +47,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NaiveBayes\NaiveBayesCalculator.cs" />
     <Compile Include="Parsing\CsvParserUtils.cs" />
     <Compile Include="Parsing\EmailExample.cs" />
+    <Compile Include="Parsing\WordCount.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
