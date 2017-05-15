@@ -25,17 +25,21 @@ namespace Homework3Problem3.DecisionTreeClasses
 
 		private int _evaluatedTrueCount = 0;
 		private int _evaluatedFalseCount = 0;
+		private List<DataSetAttribute> _attributes;
+		private List<DataSetValue> _values;
 
-		public DecisionTreeLevel(double chiTestLimit)
+		public DecisionTreeLevel(double chiTestLimit, List<DataSetAttribute> attributes, List<DataSetValue> values)
 		{
 			ChiTestLimit = chiTestLimit;
+			_attributes = attributes;
+			_values = values;
 		}
 
-		public void D3(List<DataSetAttribute> attributes, List<DataSetValue> values)
+		public void D3()
 		{
 			// Check whether we even need to split or not
-			int totalTrueValues = values.Count(v => v.Output);
-			int totalFalseValues = values.Count(v => !v.Output);
+			int totalTrueValues = _values.Count(v => v.Output);
+			int totalFalseValues = _values.Count(v => !v.Output);
 
 			if (totalFalseValues == 0 && totalTrueValues > 0)
 			{
@@ -50,7 +54,7 @@ namespace Homework3Problem3.DecisionTreeClasses
 			}
 
 			// Can we split on attributes?
-			if (attributes.Count == 0)
+			if (_attributes.Count == 0)
 			{
 				// Can't split anymore. We'll decide on the most prevalent value
 				_localValue = totalTrueValues > totalFalseValues;
@@ -58,7 +62,7 @@ namespace Homework3Problem3.DecisionTreeClasses
 			}
 
 			// First, find the attribute with the highest "E"
-			List<DataSetAttributeWithCounts> e = CalculateEForAllAttributes(attributes, values);
+			List<DataSetAttributeWithCounts> e = CalculateEForAllAttributes(_attributes, _values);
 			DataSetAttributeWithCounts attributeWithMinEntropy = FindAttributeWithMinEntropy(e);
 			_attributeToSplitOn = attributeWithMinEntropy;
 
@@ -71,22 +75,22 @@ namespace Homework3Problem3.DecisionTreeClasses
 			}
 
 			// Remove this attribute from the list of new attributes to create new subtrees
-			List<DataSetAttribute> newAttributes = attributes.Where(a => a.Name != attributeWithMinEntropy.Name).ToList();
+			List<DataSetAttribute> newAttributes = _attributes.Where(a => a.Name != attributeWithMinEntropy.Name).ToList();
 
 			// Split the values in many sets
 			_dictionaryOfSubTrees = new Dictionary<string, DecisionTreeLevel>(attributeWithMinEntropy.PossibleValues.Count);
 			var dictionaryOfValues = new Dictionary<string, List<DataSetValue>>();
-			foreach (var dataSetValue in values)
+			foreach (var dataSetValue in _values)
 			{
 				string value = dataSetValue.Values[attributeWithMinEntropy.ValueIndex];
 				DecisionTreeLevel localTreeLevel;
 				List<DataSetValue> localValues;
 				if (!_dictionaryOfSubTrees.TryGetValue(value, out localTreeLevel))
 				{
-					localTreeLevel = new DecisionTreeLevel(ChiTestLimit);
-					_dictionaryOfSubTrees[value] = localTreeLevel;
 					localValues = new List<DataSetValue>();
 					dictionaryOfValues[value] = localValues;
+					localTreeLevel = new DecisionTreeLevel(ChiTestLimit, newAttributes, localValues);
+					_dictionaryOfSubTrees[value] = localTreeLevel;
 				}
 				else
 				{
@@ -99,8 +103,8 @@ namespace Homework3Problem3.DecisionTreeClasses
 			// Recursively run D3 on them
 			foreach (var decisionTree in _dictionaryOfSubTrees)
 			{
-				var localValues = dictionaryOfValues[decisionTree.Key];
-				decisionTree.Value.D3(newAttributes, localValues);
+				List<DataSetValue> localValues = dictionaryOfValues[decisionTree.Key];
+				decisionTree.Value.D3();
 			}
 		}
 

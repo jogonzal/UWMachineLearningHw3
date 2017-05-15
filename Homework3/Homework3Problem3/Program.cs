@@ -11,6 +11,8 @@ namespace Homework3Problem3
 {
 	class Program
 	{
+		private const double ChiTestLimit = 0;
+
 		private static string DataSetPath => Path.Combine(Directory.GetCurrentDirectory() + @"\..\..\..\..\data\molecular-biology_promoters_train.arff");
 		private static string TestSetPath => Path.Combine(Directory.GetCurrentDirectory() + @"\..\..\..\..\data\molecular-biology_promoters_test.arff");
 
@@ -48,13 +50,13 @@ namespace Homework3Problem3
 			// Initialize the required trees with their respective chiTestLimits
 			List<DecisionTreeLevel> listOfTreesToRunTestOn = new List<DecisionTreeLevel>()
 			{
-				new DecisionTreeLevel(chiTestLimit:0.99),
-				new DecisionTreeLevel(chiTestLimit:0.95),
-				new DecisionTreeLevel(chiTestLimit:0),
+				new DecisionTreeLevel(.99, trainingData.Attributes, trainingData.Values),
+				new DecisionTreeLevel(0.95, trainingData.Attributes, trainingData.Values),
+				new DecisionTreeLevel(0, trainingData.Attributes, trainingData.Values),
 			};
 
 			Console.WriteLine("Runnind D3...");
-			Parallel.ForEach(listOfTreesToRunTestOn, l => l.D3(trainingData.Attributes, trainingData.Values));
+			Parallel.ForEach(listOfTreesToRunTestOn, l => l.D3());
 
 			Console.WriteLine("Deleting unecessary nodes...");
 			Parallel.ForEach(listOfTreesToRunTestOn, l => l.TrimTree());
