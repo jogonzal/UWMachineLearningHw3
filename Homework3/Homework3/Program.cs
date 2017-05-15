@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Homework3.NaiveBayes;
 using Homework3.Parsing;
 
@@ -37,17 +38,23 @@ namespace Homework3
 			Console.WriteLine(startTime);
 
 			Console.WriteLine("Parsing...");
+			List<EmailExample> trainingEmails;
+			Dictionary<string, WordCount> trainingCounts = CsvParserUtils.ParseEmailExamples(TrainingDataPath, out trainingEmails);
 			List<EmailExample> testEmails;
-			Dictionary<string, WordCount> trainingEmails = CsvParserUtils.ParseEmailExamples(TrainingDataPath, out testEmails);
 			CsvParserUtils.ParseEmailExamples(TestDataPath, out testEmails);
+
+			double probabilitySpam = 1.0 * trainingEmails.Count(t => t.IsSpam) / trainingEmails.Count;
 
 			Console.WriteLine("Making predictions...");
 			uint hits = 0, misses = 0;
 			uint falsePositives = 0, falseNegatives = 0;
 			foreach (var emailExample in testEmails)
 			{
-				double probabilityOfSpam = NaiveBayesCalculator.ObtainProbabilityOfSpam(emailExample.WordsInEmail, trainingEmails);
-				bool isSpamPrediction = probabilityOfSpam > 0.5;
+				//double probabilityOfSpam = NaiveBayesCalculator.ObtainProbabilityOfSpam(emailExample.WordsInEmail, trainingCounts, probabilitySpam);
+				//bool isSpamPrediction = probabilityOfSpam > 0.5;
+
+				var probabilityOfSpam = NaiveBayesCalculator.ObtainProbabilityOfSpam(emailExample.WordsInEmail, trainingCounts, probabilitySpam, trainingCounts.Count);
+				bool isSpamPrediction = probabilityOfSpam.Item1 > probabilityOfSpam.Item2;
 				if (isSpamPrediction && emailExample.IsSpam)
 				{
 					hits++;
@@ -72,7 +79,7 @@ namespace Homework3
 				}
 			}
 
-			Console.WriteLine("Score: {0}. Hits: {1}, Misses: {2}", 100.0 * hits / (misses + hits), hits, misses);
+			Console.WriteLine("Score: {0}%. Hits: {1}, Misses: {2}", 100.0 * hits / (misses + hits), hits, misses);
 			Console.WriteLine("FalsePositives: {0}. FalseNegatives: {1}", falsePositives, falseNegatives);
 
 			var endTime = DateTime.Now;
