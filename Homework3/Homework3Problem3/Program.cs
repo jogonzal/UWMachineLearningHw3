@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Homework3Problem3.DataSet;
 using Homework3Problem3.DecisionTreeClasses;
 using MachineLearningHw1.DataSet;
@@ -42,8 +43,6 @@ namespace Homework3Problem3
 			Random rnd = new Random();
 			Console.WriteLine("Reading training data...");
 			ParserResults trainingData = ParserUtils.ParseData(DataSetPath);
-			// Optimizations are optional
-			// DataSetOptimizerForExtraCredit.OptimizeDataSetForExtraCredit(trainingData.Attributes, trainingData.Values);
 
 			Console.WriteLine("Validating data set");
 			DataSetCleaner.ValidateDataSet(trainingData.Attributes, trainingData.Values);
@@ -57,11 +56,14 @@ namespace Homework3Problem3
 				Bagging.ProduceDifferentDataSets(trainingData.Values, 20, rnd),
 			};
 
-			// Initialize the required trees with their respective chiTestLimits
-			List<List<DecisionTreeLevel>> listOfTreesToRunTestOn =
-				dataSetValuesForBagging.Select(d => d.Select(x => new DecisionTreeLevel(ChiTestLimit, trainingData.Attributes, x)).ToList()).ToList();
+			// Initialize the required trees
+			List<List<DecisionTreeLevel>> listOfTreesToRunTestOn = new List<List<DecisionTreeLevel>>();
+			foreach (var dataSetForBagging in dataSetValuesForBagging)
+			{
+				listOfTreesToRunTestOn.Add(dataSetForBagging.Select(x => new DecisionTreeLevel(ChiTestLimit, trainingData.Attributes, x)).ToList());
+			}
 
-			Console.WriteLine("Runnind D3...");
+			Console.WriteLine("Runnind D3 on all trees in parallel...");
 			Parallel.ForEach(listOfTreesToRunTestOn.SelectMany(s =>s), l => l.D3());
 
 			Console.WriteLine("Deleting unecessary nodes...");
@@ -69,28 +71,11 @@ namespace Homework3Problem3
 
 			Console.WriteLine("Getting test data set...");
 			ParserResults testData = ParserUtils.ParseData(TestSetPath);
-			// Optimizations are optional
-			// DataSetOptimizerForExtraCredit.OptimizeDataSetForExtraCredit(testData.Attributes, testData.Values);
 
 			Console.WriteLine("Evaluating trees against test data...");
-			List<DecisionTreeScore> scores = listOfTreesToRunTestOn.SelectMany(s => s).AsParallel().Select(t => DecisionTreeScorer.ScoreWithTreeWithTestSet(t, testData.Values)).ToList();
-
-			//Console.WriteLine("Writing trees to text files (for debugging/visualization)...");
-			// Dump the trees to a txt file for debugging/visualization
-			// NOTE: This won't work the the Chi=0 case - the JSON file generated is too big
-			//Parallel.ForEach(listOfTreesToRunTestOn, l => File.WriteAllText("Chi" + Convert.ToInt64(l.ChiTestLimit * 10000000000000) + ".json", l.SerializeDecisionTree()));
-
-			List<DecisionTreeScore> trainingDataScores = listOfTreesToRunTestOn.SelectMany(s => s).AsParallel().Select(t => DecisionTreeScorer.ScoreWithTreeWithTestSet(t, trainingData.Values)).ToList();
-
-			// Print the results to console
-			foreach (var score in scores)
+			foreach (List<DecisionTreeLevel> baggingSetOfTrees in listOfTreesToRunTestOn)
 			{
-				score.PrintTotalScore();
-			}
-
-			Console.WriteLine("Evaluating trees against training data:");
-			foreach (var score in trainingDataScores)
-			{
+				DecisionTreeScore score = DecisionTreeScorer.ScoreWithTreeWithTestSet(baggingSetOfTrees, testData.Values);
 				score.PrintTotalScore();
 			}
 

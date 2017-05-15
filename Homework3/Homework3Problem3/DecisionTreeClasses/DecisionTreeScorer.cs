@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using MachineLearningHw1.DataSet;
 
 namespace Homework3Problem3.DecisionTreeClasses
 {
 	public class DecisionTreeScore
 	{
-		private readonly DecisionTreeLevel _decisionTree;
+		private readonly string _decisionTreeDescription;
 		public double PositiveHit { get; set; }
 		public double FalsePositive { get; set; }
 		public double NegativeHits { get; set; }
 		public double FalseNegative { get; set; }
 		public int NodeCount { get; set; }
 
-		public DecisionTreeScore(double positiveHit, double falsePositive, double negativeHits, double falseNegative, DecisionTreeLevel decisionTree)
+		public DecisionTreeScore(double positiveHit, double falsePositive, double negativeHits, double falseNegative, string decisionTreeDescription)
 		{
-			_decisionTree = decisionTree;
+			_decisionTreeDescription = decisionTreeDescription;
 			PositiveHit = positiveHit;
 			FalsePositive = falsePositive;
 			NegativeHits = negativeHits;
@@ -29,7 +30,7 @@ namespace Homework3Problem3.DecisionTreeClasses
 
 		public void PrintTotalScore()
 		{
-			Console.WriteLine($"Score for tree with CHI({_decisionTree.ChiTestLimit}) = {GetTotalScore()}. Total nodes: {NodeCount}");
+			Console.WriteLine($"Score for tree with ({_decisionTreeDescription}) = {GetTotalScore()}. Total nodes: {NodeCount}");
 		}
 	}
 
@@ -37,10 +38,30 @@ namespace Homework3Problem3.DecisionTreeClasses
 	{
 		public static DecisionTreeScore ScoreWithTreeWithTestSet(DecisionTreeLevel decisionTree, List<DataSetValue> testDataSetValues)
 		{
-			DecisionTreeScore score = new DecisionTreeScore(0, 0, 0, 0, decisionTree);
+			return ScoreWithTreeWithTestSet(new List<DecisionTreeLevel>() {decisionTree}, testDataSetValues);
+		}
+
+		public static DecisionTreeScore ScoreWithTreeWithTestSet(List<DecisionTreeLevel> decisionTrees, List<DataSetValue> testDataSetValues)
+		{
+			DecisionTreeScore score = new DecisionTreeScore(0, 0, 0, 0, "count:" + decisionTrees.Count);
 			foreach (var testDataSetValue in testDataSetValues)
 			{
-				bool output = decisionTree.Evaluate(testDataSetValue.Values);
+				// Poll the trees
+				int positiveCount = 0, negativeCount = 0;
+				foreach (var decisionTree in decisionTrees)
+				{
+					bool localOutput = decisionTree.Evaluate(testDataSetValue.Values);
+					if (localOutput)
+					{
+						positiveCount++;
+					}
+					else
+					{
+						negativeCount++;
+					}
+				}
+				bool output = positiveCount > negativeCount;
+
 				if (output && testDataSetValue.Output)
 				{
 					score.PositiveHit++;
@@ -59,7 +80,7 @@ namespace Homework3Problem3.DecisionTreeClasses
 				}
 			}
 
-			score.NodeCount = decisionTree.GetNodeCount();
+			score.NodeCount = decisionTrees.Sum(s => s.GetNodeCount());
 
 			return score;
 		}
