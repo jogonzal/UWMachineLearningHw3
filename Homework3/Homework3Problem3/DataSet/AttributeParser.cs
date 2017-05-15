@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MachineLearningHw1.DataSet;
 
-namespace MachineLearningHw1.DataSet
+namespace Homework3Problem3.DataSet
 {
 	public static class AttributeParser
 	{
@@ -46,8 +44,8 @@ namespace MachineLearningHw1.DataSet
 				attributes.Add(attribute);
 			}
 
-			// Remove the last attribute, as it is the result
-			attributes.RemoveAt(attributes.Count - 1);
+			// Remove the first attribute, as it is the result
+			attributes.RemoveAt(0);
 
 			return attributes;
 		}

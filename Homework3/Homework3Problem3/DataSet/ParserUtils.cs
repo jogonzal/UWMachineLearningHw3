@@ -21,9 +21,8 @@ namespace Homework3Problem3.DataSet
 		public static ParserResults ParseData(string dataSetPath)
 		{
 			string testDataSetAsString = File.ReadAllText(dataSetPath);
-
 			List<DataSetAttribute> attributes = AttributeParser.ParseAttributes(testDataSetAsString);
-			List<DataSetValue> trainingDataSetValues = DataParser.ParseData(testDataSetAsString);
+			List<DataSetValue> trainingDataSetValues = DataParser.ReadInCSV(dataSetPath);
 
 			return new ParserResults(attributes, trainingDataSetValues);
 		}

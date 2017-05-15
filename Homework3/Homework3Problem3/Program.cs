@@ -11,8 +11,8 @@ namespace Homework3Problem3
 {
 	class Program
 	{
-		private static string DataSetPath => Path.Combine(Directory.GetCurrentDirectory() + @"\..\..\..\molecular-biology_promoters_train.arff");
-		private static string TestSetPath => Path.Combine(Directory.GetCurrentDirectory() + @"\..\..\..\molecular-biology_promoters_test.arff");
+		private static string DataSetPath => Path.Combine(Directory.GetCurrentDirectory() + @"\..\..\..\..\data\molecular-biology_promoters_train.arff");
+		private static string TestSetPath => Path.Combine(Directory.GetCurrentDirectory() + @"\..\..\..\..\data\molecular-biology_promoters_test.arff");
 
 		static void Main(string[] args)
 		{
@@ -67,10 +67,10 @@ namespace Homework3Problem3
 			Console.WriteLine("Evaluating trees against test data...");
 			List<DecisionTreeScore> scores = listOfTreesToRunTestOn.AsParallel().Select(t => DecisionTreeScorer.ScoreWithTreeWithTestSet(t, testData.Values)).ToList();
 
-			//Console.WriteLine("Writing trees to text files (for debugging/visualization)...");
+			Console.WriteLine("Writing trees to text files (for debugging/visualization)...");
 			// Dump the trees to a txt file for debugging/visualization
 			// NOTE: This won't work the the Chi=0 case - the JSON file generated is too big
-			// Parallel.ForEach(listOfTreesToRunTestOn, l => File.WriteAllText("Chi" + Convert.ToInt64(l.ChiTestLimit * 10000000000000) + ".json", l.SerializeDecisionTree()));
+			Parallel.ForEach(listOfTreesToRunTestOn, l => File.WriteAllText("Chi" + Convert.ToInt64(l.ChiTestLimit * 10000000000000) + ".json", l.SerializeDecisionTree()));
 
 			List<DecisionTreeScore> trainingDataScores = listOfTreesToRunTestOn.AsParallel().Select(t => DecisionTreeScorer.ScoreWithTreeWithTestSet(t, trainingData.Values)).ToList();
 

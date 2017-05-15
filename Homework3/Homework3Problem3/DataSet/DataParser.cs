@@ -1,50 +1,31 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using MachineLearningHw1.DataSet;
 
-using CsvHelper;
-
-namespace MachineLearningHw1.DataSet
+namespace Homework3Problem3.DataSet
 {
 	public static class DataParser
 	{
-		private const int expectedAttributeCount = 275;
-
-		public static List<DataSetValue> ParseData(string dataSetAsString)
+		public static List<DataSetValue> ReadInCSV(string path)
 		{
-			int indexOfData = dataSetAsString.IndexOf("@data");
-			string dataString = dataSetAsString.Substring(indexOfData + 5);
-
-			var result = ReadInCSV(dataString);
-
-			return result;
-		}
-
-		public static List<DataSetValue> ReadInCSV(string stringToRead)
-		{
-			List<DataSetValue> result = new List<DataSetValue>();
-			string value;
-			using (StringReader sr = new StringReader(stringToRead))
+			List<DataSetValue> dataSetValues = new List<DataSetValue>();
+			var lines = File.ReadAllLines(path);
+			foreach (var line in lines)
 			{
-				using (var csv = new CsvReader(sr))
+				if (!line.StartsWith("+") && !line.StartsWith("-"))
 				{
-					csv.Configuration.HasHeaderRecord = false;
-					while (csv.Read())
-					{
-						List<string> line = new List<string>();
-						for (int i = 0; csv.TryGetField<string>(i, out value); i++)
-						{
-							line.Add(value);
-						}
-
-						// Get the last attribute, which should be boolean
-						bool lastValue = bool.Parse(line[line.Count - 1]);
-						line.RemoveAt(line.Count - 1);
-
-						result.Add(new DataSetValue(line, lastValue));
-					}
+					continue;
 				}
+
+				string[] values = line.Split(new[] {','});
+				string output = values[0];
+				List<string> rest = values.Skip(0).ToList();
+
+				dataSetValues.Add(new DataSetValue(rest, output == "+"));
 			}
-			return result;
+
+			return dataSetValues;
 		}
 	}
 }
