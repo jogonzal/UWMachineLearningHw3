@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bagging.cs" />
     <Compile Include="DataSet\AttributeParser.cs" />
     <Compile Include="DataSet\DataParser.cs" />
     <Compile Include="DataSet\DataSetAttribute.cs" />
