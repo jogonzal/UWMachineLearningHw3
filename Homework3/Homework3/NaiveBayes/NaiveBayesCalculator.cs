@@ -51,7 +51,7 @@ namespace Homework3.NaiveBayes
 					wordCount = new WordCount();
 				}
 
-				const int smoothingNum = 5; // Feel free to change this #
+				const double smoothingNum = 100; // Feel free to change this #
 
 				double probabilityOfWordBeingSpam = (1.0 * wordCount.SpamCount + smoothingNum) / (wordCount.SpamCount + wordCount.HamCount + smoothingNum);
 				double probabilityOfWordBeingHam = (1.0 * wordCount.HamCount + smoothingNum) / (wordCount.SpamCount + wordCount.HamCount + smoothingNum);
